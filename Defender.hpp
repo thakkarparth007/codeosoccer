@@ -9,23 +9,34 @@ namespace MyStrategy
   void defender(BeliefState *state,int botID)
   {
 	  print("DEFENDER!\n");
+	  if (isBallBlockedAndSafeToSpin(state, botID)) {
+		  spinSafely(state, botID);
+		  return;
+	  }
+
 	  int dist = Vec2D::distSq(state->ballPos, homeGoal);
 
 	  if (dist < DBOX_WIDTH*DBOX_WIDTH * 4) {
 		  print("Sparta!!!!!!!!\n");
-		  shoot(botID, state, Vector2D<float>(state->ballPos.x, state->ballPos.y));
+		  if (state->homePos[botID].x < state->ballPos.y)
+			  shoot(botID, state, floatV(state->ballPos), true);
+		  else
+			  block(state, botID, homeGoal, true, -1);
 		  return;
 	  }
+	  block(state, botID, homeGoal, true, -1);
+	  return;
+
 	  Vec2D pos = state->homePos[botID];
 
-	  if (abs(pos.x - (OUR_GOAL_X + 3*DBOX_HEIGHT) > 220)) {
+	  if (abs(pos.x - (OUR_GOAL_X + 3*DBOX_HEIGHT)) > 100) {
 		  print("DEFENDER: MOVE BACK TO BASE %d\t%d\t%d\n", pos.x, OUR_GOAL_X + DBOX_HEIGHT, abs(pos.x - (OUR_GOAL_X + DBOX_HEIGHT)));
 		  Vec2D dpoint(OUR_GOAL_X + 3*DBOX_HEIGHT, state->ballPos.y);
 
-		  if (dpoint.y > OUR_GOAL_MAXY - 500)
-			  dpoint.y = OUR_GOAL_MAXY - 500;
-		  if (dpoint.y < OUR_GOAL_MINY + 500)
-			  dpoint.y = OUR_GOAL_MINY + 500;
+		  if (dpoint.y > OUR_GOAL_MAXY)
+			  dpoint.y = OUR_GOAL_MAXY;
+		  if (dpoint.y < OUR_GOAL_MINY)
+			  dpoint.y = OUR_GOAL_MINY;
 		  GoToPoint(botID, state, dpoint, PI / 2, true, true);
 		  return;
 	  }

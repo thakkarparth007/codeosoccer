@@ -99,7 +99,10 @@ namespace MyStrategy
     fTheta = pow(fTheta,2.2) ;
     float fDistance = (dist > BOT_POINT_THRESH*3) ? 1 : dist / ((float) BOT_POINT_THRESH *3);
     float fTot = fDistance * fTheta;
-    fTot = 0.5 + fTot*(1-0.5);
+	if (state->ballPos.x > 0)
+		fTot = 0.5 + fTot*(1 - 0.3);
+	else
+		fTot = 0.5 + fTot*(1 - 0.5);
 
     float profileFactor = MAX_BOT_SPEED*fTot;
     

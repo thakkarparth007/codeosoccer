@@ -6,6 +6,9 @@ namespace MyStrategy
 	extern int attacker_id;
 	extern int supporter_id;
 
+	extern Vec2D homeGoal;
+	extern void block(BeliefState *state, int myBotId, Vec2D targetDest, bool isTargetBall, int toBlockBotId);
+
 	void moveToPointSpl(BeliefState *state, int botID, Vec2D dpoint) {
 		Vec2D mypos = state->homePos[botID];
 		float myrot = Vec2D::angle(state->homePos[botID], Vec2D(0,0));
@@ -42,13 +45,22 @@ namespace MyStrategy
 		Velocity(botID, vl, vr);
 	}
 
-	void shoot(int botID, BeliefState *state, Vector2D<float> point) {
+	Vector2D<float> floatV(Vec2D v) {
+		return Vector2D<float>(v.x, v.y);
+	}
+	Vector2D<int> intV(Vector2D<float> v) {
+		return Vector2D<int>(v.x, v.y);
+	}
+	Vec2D predictedBallPos(BeliefState *state) {
+		return Vec2D(0, 0);
+	}
+	void shoot(int botID, BeliefState *state, Vector2D<float> point, bool shootWildly) {
 		int botx = state->homePos[botID].x;
 		int boty = state->homePos[botID].y;
 
 		int ballx = state->ballPos.x;
 		int bally = state->ballPos.y;
-		if (Vec2D::dist(state->homePos[botID], state->ballPos) < 340) {
+		if ((shootWildly /*&& Vec2D::dist(Vec2D(OPP_GOAL_X,0), state->ballPos) < DBOX_WIDTH*2*/)&& Vec2D::dist(state->homePos[botID], state->ballPos) < 340) {
 			if (botx < ballx) {
 				if (boty > 0 && boty < bally)		// ahead and above
 					Spin(botID, MAX_BOT_OMEGA);
@@ -60,19 +72,22 @@ namespace MyStrategy
 					Spin(botID, MAX_BOT_OMEGA);
 			}
 			else {
-				if (boty > 0 && boty < bally)		// behind and above
+				/*if (boty > 0 && boty < bally)		// behind and above
 					Spin(botID, MAX_BOT_OMEGA/10);
 				else if (boty > 0 && boty > bally)
 					Spin(botID, -MAX_BOT_OMEGA/10);
 				else if (boty < 0 && boty > bally)		// behind and above
 					Spin(botID, MAX_BOT_OMEGA/10);
 				else
-					Spin(botID, -MAX_BOT_OMEGA/10);
+					Spin(botID, -MAX_BOT_OMEGA/10);*/
 			}
 			return;
 		}
+		//GoToBall(botID, state, true);
+		//return;
+
 		Vec2D::dist(state->ballPos, state->homePos[botID]);
-		double time = Vec2D::dist(state->ballPos, state->homePos[botID]) / (state->ballVel.abs() + state->homePos[botID].abs());
+		double time = Vec2D::dist(state->ballPos, state->homePos[botID]) / (state->ballVel.abs() + state->homeVel[botID].abs());
 		Vector2D<float> ppos = Vector2D<float>(state->ballPos.x, state->ballPos.y) + time*state->ballVel;
 		GoToPoint(botID, state, Vec2D(ppos.x, ppos.y), Vector2D<float>::angle(point, ppos), true, true);
 		Vec2D v = state->homePos[botID];
@@ -87,14 +102,87 @@ namespace MyStrategy
 		//moveToPointSpl(state, botID, point);
 	}
 
+	bool isBallBlockedAndSafeToSpin(BeliefState *state, int botID) {
+		if (Vec2D::dist(state->homePos[botID], state->ballPos) > 340)
+			return false;
+
+		if (state->ballVel.abs() > 100)
+			return false;
+
+		// don't risk shooting home goal
+		if (state->ballPos.x < state->homePos[botID].x - BALL_RADIUS/2 &&
+			((state->ballPos.y < state->homePos[botID].y && state->homePos[botID].y >= -DBOX_HEIGHT) ||
+			(state->ballPos.y > state->homePos[botID].y && state->homePos[botID].y <= DBOX_HEIGHT)))
+			return false;
+		
+		for (int i = 0; i < 3; i++) {
+			if (Vec2D::dist(state->awayPos[i], state->homePos[botID]) < 4 * BOT_RADIUS) {
+				return true;
+			}
+		}
+		
+		// maybe you're stuck not against a robot, but against the wall
+		return true;
+	}
+
+	// called only if isBallBlockedAndSafeToSpin() is true
+	void spinSafely(BeliefState *state, int botID) {
+		int botx = state->homePos[botID].x;
+		int boty = state->homePos[botID].y;
+
+		int ballx = state->ballPos.x;
+		int bally = state->ballPos.y;
+
+		if (botx > ballx) {
+			if (boty > 0)		// ahead and above
+				Spin(botID, -MAX_BOT_OMEGA);
+			else
+				Spin(botID, MAX_BOT_OMEGA);
+		}
+		else {
+			if (boty > 0)		// ahead and above
+				Spin(botID, -MAX_BOT_OMEGA);
+			else
+				Spin(botID, MAX_BOT_OMEGA);
+		}
+
+	}
+
+	Vec2D chooseGoalPoint(BeliefState *state, int botID) {
+		return Vec2D(OPP_GOAL_X, 0);
+		Vec2D best_goal_point(OPP_GOAL_X, 0);
+		int best_goal_point_reward = 0;
+		int numpoints = 6;
+		//-5, -3, -1, 1, 3, 5
+		for (int i = 0; i < numpoints; i++) {
+			Vec2D pt = Vec2D(OPP_GOAL_X, (2*i-5)*DBOX_WIDTH / numpoints / 2);
+			int cur_goal_point_reward = Vec2D::dist(state->homePos[botID], pt) * 3 / abs(2 * i - 5) / abs(2 * i - 5);
+			int other_bot_id = botID == 1 ? 2 : 1;
+			cur_goal_point_reward += Vec2D::dist(state->homePos[other_bot_id], pt) * 2;
+			for (int j = 0; j < 3; j++) {
+				cur_goal_point_reward -= 1 / Vec2D::dist(state->awayPos[j], pt);
+			}
+			if (cur_goal_point_reward > best_goal_point_reward) {
+				best_goal_point_reward = cur_goal_point_reward;
+				best_goal_point = pt;
+			}
+		}
+		return best_goal_point;
+	}
+
 	void attacksupporter(BeliefState *state, int botID)
 	{
 		print("Attack Supporter\n");
 		Vector2D<float> opp_goal(OPP_GOAL_X, 0);
 
+		if (isBallBlockedAndSafeToSpin(state, botID)) {
+			spinSafely(state, botID);
+			return;
+		}
+
 		int dist = Vec2D::distSq(state->ballPos, Vec2D(OPP_GOAL_X, 0));
-		if (dist < DBOX_WIDTH*DBOX_WIDTH * 3) {
-			shoot(botID, state, opp_goal);
+		if (dist < DBOX_WIDTH*DBOX_WIDTH) {
+			shoot(botID, state, floatV(chooseGoalPoint(state, botID)), true);
 		}
 		else {
 			float align_angle;
@@ -129,10 +217,34 @@ namespace MyStrategy
     print("Attacker\n");
 
 	Vec2D dpoint(OPP_GOAL_X, 0);
+	if (isBallBlockedAndSafeToSpin(state, botID)) {
+		spinSafely(state, botID);
+		return;
+	}
+
+	int dist = Vec2D::distSq(state->ballPos, homeGoal);
+
+	if (dist < DBOX_WIDTH*DBOX_WIDTH * 4) {
+		print("Sparta!!!!!!!!\n");
+		if (state->homePos[botID].x < state->ballPos.y)
+			shoot(botID, state, floatV(state->ballPos), true);
+		else
+			block(state, botID, homeGoal, true, -1);
+		return;
+	}
 	//if (Vec2D::dist(state->homePos[botID], dpoint) > DBOX_WIDTH && Vec2D::dist(state->homePos[1], dpoint) < Vec2D::dist(state->homePos[botID], dpoint))
 	//	shoot(botID, state, Vector2D<float>(state->homePos[1].x, state->homePos[1].y));
 	//else
-		shoot(botID, state, Vector2D<float>(OPP_GOAL_X, 0));
+	
+	int ball_goal_dist = Vec2D::distSq(state->ballPos, Vec2D(OPP_GOAL_X, 0));
+	int bot_ball_dist = Vec2D::dist(state->ballPos, state->homePos[botID]);
+	if (ball_goal_dist < DBOX_WIDTH*DBOX_WIDTH && bot_ball_dist < BOT_BALL_THRESH) {
+		shoot(botID, state, floatV(chooseGoalPoint(state, botID)), true);
+	}
+	else {
+		shoot(botID, state, floatV(chooseGoalPoint(state, botID)), false);
+	}
+	//shoot(botID, state, floatV(chooseGoalPoint(state, botID)), false);
 	return;
 
 	Vec2D fpoint(OPP_GOAL_X,0);
