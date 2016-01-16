@@ -75,7 +75,6 @@ namespace MyStrategy
 	//print("GoalKeeper\n%d\t%d\t%d\t%d\n", state->ballPos.x, state->ballPos.y, OUR_GOAL_X, dist);
 
 	  if (dist < DBOX_WIDTH*DBOX_WIDTH*3) {
-		  print("Sparta!!!!!!!!\n");
 		  if (state->homePos[botID].x < state->ballPos.y)
 			  shoot(botID, state, floatV(state->ballPos), true);
 		  else
@@ -92,7 +91,6 @@ namespace MyStrategy
 	Vec2D pos = state->homePos[botID];
 
 	//if (abs(pos.x - (OUR_GOAL_X + GOAL_DEPTH*1.5)) > 50) {
-		print("GOALKEEPER: MOVE BACK TO BASE %d\t%d\t%d\n", pos.x, OUR_GOAL_X + GOAL_DEPTH*1.5, abs(pos.x - (OUR_GOAL_X + GOAL_DEPTH*1.5)));
 		Vec2D dpoint(OUR_GOAL_X + GOAL_DEPTH*1.5, state->ballPos.y);
 
 		if (dpoint.y > OUR_GOAL_MAXY)

@@ -8,7 +8,6 @@ namespace MyStrategy
   // Naive example for defender
   void defender(BeliefState *state,int botID)
   {
-	  print("DEFENDER!\n");
 	  if (isBallBlockedAndSafeToSpin(state, botID)) {
 		  spinSafely(state, botID);
 		  return;
@@ -17,7 +16,6 @@ namespace MyStrategy
 	  int dist = Vec2D::distSq(state->ballPos, homeGoal);
 
 	  if (dist < DBOX_WIDTH*DBOX_WIDTH * 4) {
-		  print("Sparta!!!!!!!!\n");
 		  if (state->homePos[botID].x < state->ballPos.y)
 			  shoot(botID, state, floatV(state->ballPos), true);
 		  else
@@ -30,7 +28,6 @@ namespace MyStrategy
 	  Vec2D pos = state->homePos[botID];
 
 	  if (abs(pos.x - (OUR_GOAL_X + 3*DBOX_HEIGHT)) > 100) {
-		  print("DEFENDER: MOVE BACK TO BASE %d\t%d\t%d\n", pos.x, OUR_GOAL_X + DBOX_HEIGHT, abs(pos.x - (OUR_GOAL_X + DBOX_HEIGHT)));
 		  Vec2D dpoint(OUR_GOAL_X + 3*DBOX_HEIGHT, state->ballPos.y);
 
 		  if (dpoint.y > OUR_GOAL_MAXY)
@@ -41,11 +38,9 @@ namespace MyStrategy
 		  return;
 	  }
 	  if (fabs(state->homeAngle[botID] - PI / 2) > 0.1) {
-		  print("DEFENDER TURNING %f\n", state->homeAngle[botID]);
 		  TurnToAngle(botID, state, PI / 2);
 	  }
 	  else {
-		  print("DEFENDER RUNNING\n");
 		  if (state->homePos[botID].y > OUR_GOAL_MAXY) {
 			  Velocity(botID, -MAX_BOT_SPEED, -MAX_BOT_SPEED);
 		  }

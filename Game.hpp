@@ -5,7 +5,8 @@
 #include "skills.h"
 #include "Attacker.hpp"
 #include "Defender.hpp"
-#include "AttackSupporter.hpp"
+#include "States.hpp"
+//#include "AttackSupporter.hpp"
 #include "GoalKeeper.hpp"
 
 // Change your team color here (BLUE_TEAM/YELLOW_TEAM)face
@@ -20,16 +21,32 @@ namespace MyStrategy
 	int attacker_id = 1;
 	int supporter_id = 2;
 
+	TeamSt * curTeamState = TeamSt::grab;
+	std::vector<PlayerSt *> curPlayerStates { NULL, new GrabberSt(1), new GrabSupSt(2) };
+
   // Write your strategy here in game function.
   // You can also make new functions and call them from game function.
   void game(BeliefState *state)
   {
+	  //curTeamState->Enter(curPlayerStates);
+	  curTeamState->Act(state, curPlayerStates);
+	  int i;
+	  for (i = 1; i < 3; ++i) {
+		  //std::string s = curPlayerStates[i]->StateName();
+		  //print("%s", s);
+		  curPlayerStates[i]->StateName();
+		  PlayerSt * newPlSt = curPlayerStates[i]->Act(state);
+		  if (newPlSt != NULL) {
+			  //changePlayerState(curPlayerStates, i, newPlSt);
+			  curPlayerStates[i] = newPlSt;
+			  curPlayerStates[i]->Act(state);
+		  }
+	  }
+	  return;
 	  //storePositions(state);
 	  //attacker(state,2);
-	  
 	  for (int i = 0; i < 5; i++) {
 		  //state->homeAngle[i] = acos(state->homeVel[i].dot(Vector2D<float>(0, 1)) / state->homeVel[i].abs());
-		  print("%d\t%f\n", i, state->homeAngle[i]);
 	  }
 
 	  if (state->ballPos.x >= -100) {

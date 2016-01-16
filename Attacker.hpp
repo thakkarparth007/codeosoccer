@@ -24,18 +24,13 @@ namespace MyStrategy
 		//	angleToPoint += 2 * PI;
 		myrot = 0;
 		if (myrot > angleToPoint) {
-			//print("NYOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n");
 			vl = (myrot - angleToPoint) * 40 / PI;
 		}
 		if (myrot < angleToPoint) {
-			//print("YUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUS\n");
 			vr = (myrot - angleToPoint) * 40 / PI;
 		}
 
-		print("ATTACKER:\t%d\t%d\t%f\n", (int)(myrot * 180 / PI), (int)(angleToPoint * 180 / PI), angleToPoint);
-
 		if (fabs(myrot - angleToPoint)*180/PI < 40) {
-			print("AWWWWWWWWWWWWWWWWWWWWWSOOOOOOOOOOOOOMe");
 			vl = vr = MAX_BOT_SPEED;
 			if (myrot < angleToPoint) vl -= angleToPoint*40/PI;
 			else if (myrot > angleToPoint) vr -= -angleToPoint*40/PI;
@@ -87,7 +82,8 @@ namespace MyStrategy
 		//return;
 
 		Vec2D::dist(state->ballPos, state->homePos[botID]);
-		double time = Vec2D::dist(state->ballPos, state->homePos[botID]) / (state->ballVel.abs() + state->homeVel[botID].abs());
+		Vector2D<float> relVel = state->homeVel[botID] - state->ballVel;
+		double time = Vec2D::dist(state->ballPos, state->homePos[botID]) / (relVel.abs() * 5);
 		Vector2D<float> ppos = Vector2D<float>(state->ballPos.x, state->ballPos.y) + time*state->ballVel;
 		GoToPoint(botID, state, Vec2D(ppos.x, ppos.y), Vector2D<float>::angle(point, ppos), true, true);
 		Vec2D v = state->homePos[botID];
@@ -172,7 +168,6 @@ namespace MyStrategy
 
 	void attacksupporter(BeliefState *state, int botID)
 	{
-		print("Attack Supporter\n");
 		Vector2D<float> opp_goal(OPP_GOAL_X, 0);
 
 		if (isBallBlockedAndSafeToSpin(state, botID)) {
@@ -214,7 +209,6 @@ namespace MyStrategy
   // Naive example for attacker
   void attacker(BeliefState *state,int botID)
   {
-    print("Attacker\n");
 
 	Vec2D dpoint(OPP_GOAL_X, 0);
 	if (isBallBlockedAndSafeToSpin(state, botID)) {
@@ -225,7 +219,6 @@ namespace MyStrategy
 	int dist = Vec2D::distSq(state->ballPos, homeGoal);
 
 	if (dist < DBOX_WIDTH*DBOX_WIDTH * 4) {
-		print("Sparta!!!!!!!!\n");
 		if (state->homePos[botID].x < state->ballPos.y)
 			shoot(botID, state, floatV(state->ballPos), true);
 		else
