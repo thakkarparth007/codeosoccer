@@ -24,13 +24,18 @@ namespace MyStrategy
 		//	angleToPoint += 2 * PI;
 		myrot = 0;
 		if (myrot > angleToPoint) {
+			//print("NYOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n");
 			vl = (myrot - angleToPoint) * 40 / PI;
 		}
 		if (myrot < angleToPoint) {
+			//print("YUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUS\n");
 			vr = (myrot - angleToPoint) * 40 / PI;
 		}
 
+		print("ATTACKER:\t%d\t%d\t%f\n", (int)(myrot * 180 / PI), (int)(angleToPoint * 180 / PI), angleToPoint);
+
 		if (fabs(myrot - angleToPoint)*180/PI < 40) {
+			print("AWWWWWWWWWWWWWWWWWWWWWSOOOOOOOOOOOOOMe");
 			vl = vr = MAX_BOT_SPEED;
 			if (myrot < angleToPoint) vl -= angleToPoint*40/PI;
 			else if (myrot > angleToPoint) vr -= -angleToPoint*40/PI;
@@ -82,8 +87,7 @@ namespace MyStrategy
 		//return;
 
 		Vec2D::dist(state->ballPos, state->homePos[botID]);
-		Vector2D<float> relVel = state->homeVel[botID] - state->ballVel;
-		double time = Vec2D::dist(state->ballPos, state->homePos[botID]) / (relVel.abs() * 5);
+		double time = Vec2D::dist(state->ballPos, state->homePos[botID]) / (state->ballVel.abs() + state->homeVel[botID].abs());
 		Vector2D<float> ppos = Vector2D<float>(state->ballPos.x, state->ballPos.y) + time*state->ballVel;
 		GoToPoint(botID, state, Vec2D(ppos.x, ppos.y), Vector2D<float>::angle(point, ppos), true, true);
 		Vec2D v = state->homePos[botID];
@@ -156,7 +160,9 @@ namespace MyStrategy
 			int other_bot_id = botID == 1 ? 2 : 1;
 			cur_goal_point_reward += Vec2D::dist(state->homePos[other_bot_id], pt) * 2;
 			for (int j = 0; j < 3; j++) {
-				cur_goal_point_reward -= 1 / Vec2D::dist(state->awayPos[j], pt);
+				int botDist = Vec2D::dist(state->awayPos[j], pt);
+				cur_goal_point_reward -= 1 / botDist;
+				//cur_goal_point_reward -= state->awayVel[j].dot(floatV(state->awayPos[j] - pt)) / botDist;
 			}
 			if (cur_goal_point_reward > best_goal_point_reward) {
 				best_goal_point_reward = cur_goal_point_reward;
@@ -166,8 +172,17 @@ namespace MyStrategy
 		return best_goal_point;
 	}
 
+	void dribble(BeliefState *state, int botID, Vec2D targetPos, float finalAngle, bool shouldAlign) {
+		Vector2D<float> relVel = state->homeVel[botID] - state->ballVel;
+		double time = Vec2D::dist(state->ballPos, state->homePos[botID]) / (relVel.abs() * 5);
+		Vector2D<float> ppos = Vector2D<float>(state->ballPos.x, state->ballPos.y) + time*state->ballVel;
+
+		GoToPoint(botID, state, intV(ppos), finalAngle, false, shouldAlign);
+	}
+
 	void attacksupporter(BeliefState *state, int botID)
 	{
+		print("Attack Supporter\n");
 		Vector2D<float> opp_goal(OPP_GOAL_X, 0);
 
 		if (isBallBlockedAndSafeToSpin(state, botID)) {
@@ -209,6 +224,7 @@ namespace MyStrategy
   // Naive example for attacker
   void attacker(BeliefState *state,int botID)
   {
+    print("Attacker\n");
 
 	Vec2D dpoint(OPP_GOAL_X, 0);
 	if (isBallBlockedAndSafeToSpin(state, botID)) {
@@ -219,6 +235,7 @@ namespace MyStrategy
 	int dist = Vec2D::distSq(state->ballPos, homeGoal);
 
 	if (dist < DBOX_WIDTH*DBOX_WIDTH * 4) {
+		print("Sparta!!!!!!!!\n");
 		if (state->homePos[botID].x < state->ballPos.y)
 			shoot(botID, state, floatV(state->ballPos), true);
 		else

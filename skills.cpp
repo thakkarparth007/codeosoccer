@@ -7,23 +7,23 @@ using namespace std;
 namespace MyStrategy
 {
   /***************************GoToPoint with pathplanner***************************************************/
-  void GoToPoint(int botID,BeliefState *state,Vector2D<int> dpoint, float finalslope,bool increaseSpeed, bool shouldAlign)
+  void GoToPoint(int botID,BeliefState *state,Vector2D<int> dpoint, float finalslope,bool increaseSpeed, bool shouldAlign, bool wild)
   {
 
 	if(shouldAlign)
-		maingotopoint(botID,state,dpoint,100,finalslope,CLEARANCE_PATH_PLANNER, increaseSpeed,true);
+		maingotopoint(botID,state,dpoint,100,finalslope,CLEARANCE_PATH_PLANNER, increaseSpeed,true, wild);
 	else
-		maingotopoint(botID,state,dpoint,100,finalslope,0,increaseSpeed,true);
+		maingotopoint(botID,state,dpoint,100,finalslope,0,increaseSpeed,true, wild);
   }
-  void GoToPointStraight(int botID,BeliefState *state,Vector2D<int> dpoint, float finalslope,bool increaseSpeed, bool shouldAlign)
+  void GoToPointStraight(int botID,BeliefState *state,Vector2D<int> dpoint, float finalslope,bool increaseSpeed, bool shouldAlign, bool wild)
   {
 	if(shouldAlign)
-		maingotopoint(botID,state,dpoint,0,finalslope,CLEARANCE_PATH_PLANNER, increaseSpeed, false);
+		maingotopoint(botID,state,dpoint,0,finalslope,CLEARANCE_PATH_PLANNER, increaseSpeed, false, wild);
     else
-		maingotopoint(botID,state,dpoint,0,finalslope,0,increaseSpeed, false);
+		maingotopoint(botID,state,dpoint,0,finalslope,0,increaseSpeed, false, wild);
 
   }
-  void maingotopoint(int botID,BeliefState *state, Vector2D<int> dpoint, float finalvel, float finalslope, float clearance,bool increaseSpeed,bool avoid_obstacle)
+  void maingotopoint(int botID,BeliefState *state, Vector2D<int> dpoint, float finalvel, float finalslope, float clearance,bool increaseSpeed,bool avoid_obstacle, bool wild)
   {
     int prevVel = 0;
     static LocalAvoidance*    pathPlanner;
@@ -99,9 +99,9 @@ namespace MyStrategy
     fTheta = pow(fTheta,2.2) ;
     float fDistance = (dist > BOT_POINT_THRESH*3) ? 1 : dist / ((float) BOT_POINT_THRESH *3);
     float fTot = fDistance * fTheta;
-	//if (state->ballPos.x > 0)
-	//	fTot = 0.5 + fTot*(1 - 0.3);
-	//else
+	if (wild)
+		fTot = 0.5 + fTot*(1 - 0.3);
+	else
 		fTot = 0.5 + fTot*(1 - 0.5);
 
     float profileFactor = MAX_BOT_SPEED*fTot;

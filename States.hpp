@@ -112,7 +112,19 @@ namespace MyStrategy {
 
 		TeamSt::grab->botLanesY[Id] = whichLane(state->homePos[Id]);
 		print("Going to ball");
-		GoToBall(Id, state, true);
+
+		dribble(state, Id, Vec2D(0,0), PI / 2, true);
+		return NULL;
+		Vector2D<float> relVel = state->homeVel[Id] - state->ballVel;
+		double time = Vec2D::dist(state->ballPos, state->homePos[Id]) / (relVel.abs() * 5);
+		Vector2D<float> ppos = Vector2D<float>(state->ballPos.x, state->ballPos.y) + time*state->ballVel;
+		
+		Vec2D goal_pt = chooseGoalPoint(state, Id);
+		// without aligning, we go real fast and wild. Do that when we're close to the goal.
+		if (Vec2D::dist(state->ballPos, goal_pt) < DBOX_WIDTH*1.5)
+			GoToPoint(Id, state, intV(ppos), Vec2D::angle(goal_pt, intV(ppos)), true, false);
+		else
+			GoToPoint(Id, state, intV(ppos), Vec2D::angle(goal_pt, intV(ppos)), true, true);
 		//GoToPoint(Id, state, state->ballPos, PI / 2, true, true);
 		return NULL;
 	}
@@ -157,7 +169,10 @@ namespace MyStrategy {
 				curLaneY = 0.0;
 		}
 		TeamSt::grab->botLanesY[Id] = curLaneY;
-		GoToPoint(Id, state, Vector2D<int>(state->homePos[otherId(Id)].x, curLaneY), PI / 2, true, true);
+		Vec2D goal_pt = chooseGoalPoint(state, Id);
+		float angle = Vec2D::angle(goal_pt, state->ballPos);
+		angle = PI / 2;
+		GoToPoint(Id, state, Vector2D<int>(min(state->homePos[otherId(Id)].x, state->ballPos.x-20), curLaneY), angle, true, true);
 		return NULL;
 	}
 

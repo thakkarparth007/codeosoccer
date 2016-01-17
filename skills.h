@@ -47,10 +47,10 @@ namespace MyStrategy
 {  
     /****************************************************List of Skills******************************************************/
     // Go to a point with obstacle avoidance.
-    void GoToPoint(int botID,BeliefState *state,Vector2D<int> dpoint, float finalslope, bool increaseSpeed, bool shouldAlign);
+    void GoToPoint(int botID,BeliefState *state,Vector2D<int> dpoint, float finalslope, bool increaseSpeed, bool shouldAlign, bool wild = false);
     
     // Go to point without obstacle avoidance.
-    void GoToPointStraight(int botID,BeliefState *state,Vector2D<int>dpoint,float finalslope, bool increaseSpeed, bool shouldAlign);
+	void GoToPointStraight(int botID, BeliefState *state, Vector2D<int>dpoint, float finalslope, bool increaseSpeed, bool shouldAlign, bool wild = false);
     
     // Go to ball: If shouldAlign is true, then bot will align with the line joining the ball and the goal else will go straightaway.
     void GoToBall(int botID,BeliefState *state,bool shouldAlign);
@@ -77,7 +77,7 @@ namespace MyStrategy
 
     bool pointyInField(Vector2D<int> final);
 
-    void maingotopoint(int botID,BeliefState *state, Vector2D<int> dpoint, float finalvel, float finalslope, float clearance = CLEARANCE_PATH_PLANNER,bool increaseSpeed=0,bool avoid_obstacle = true);
+	void maingotopoint(int botID, BeliefState *state, Vector2D<int> dpoint, float finalvel, float finalslope, float clearance = CLEARANCE_PATH_PLANNER, bool increaseSpeed = 0, bool avoid_obstacle = true, bool wild = false);
     static void clearDebugData()
     {
       #ifdef FIRASSL_COMM
