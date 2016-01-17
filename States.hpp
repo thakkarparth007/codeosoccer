@@ -122,7 +122,7 @@ namespace MyStrategy {
 		Vec2D goal_pt = chooseGoalPoint(state, Id);
 		// without aligning, we go real fast and wild. Do that when we're close to the goal.
 		if (Vec2D::dist(state->ballPos, goal_pt) < DBOX_WIDTH*1.5)
-			GoToPoint(Id, state, intV(ppos), Vec2D::angle(goal_pt, intV(ppos)), true, false);
+			GoToPoint(Id, state, intV(ppos), Vec2D::angle(goal_pt, intV(ppos)), true, true, true);
 		else
 			GoToPoint(Id, state, intV(ppos), Vec2D::angle(goal_pt, intV(ppos)), true, true);
 		//GoToPoint(Id, state, state->ballPos, PI / 2, true, true);

@@ -177,7 +177,8 @@ namespace MyStrategy
 		double time = Vec2D::dist(state->ballPos, state->homePos[botID]) / (relVel.abs() * 5);
 		Vector2D<float> ppos = Vector2D<float>(state->ballPos.x, state->ballPos.y) + time*state->ballVel;
 
-		GoToPoint(botID, state, intV(ppos), finalAngle, false, shouldAlign);
+		finalAngle = Vec2D::angle(intV(ppos), targetPos);
+		GoToPoint(botID, state, intV(ppos), finalAngle, false, true);
 	}
 
 	void attacksupporter(BeliefState *state, int botID)
